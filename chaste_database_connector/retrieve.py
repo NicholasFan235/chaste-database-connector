@@ -3,6 +3,7 @@ from ._retrieve_helpers import _get_simulation_info, _extract_parameters, _param
 from .xml_to_dict import xml_to_dict
 from .connection import Connection
 import os
+import tqdm
 
 def retrieve(experiment_folder:str):
     _ChasteOutputRetriever().retrieve_experiment(experiment_folder)
@@ -30,7 +31,9 @@ class _ChasteOutputRetriever:
     def retrieve_experiment(self, experiment_folder:str):
         assert os.path.exists(experiment_folder), \
             f'Could not find experiment folder "{experiment_folder}"'
-        for simulation in os.listdir(experiment_folder):
+        sims = os.listdir(experiment_folder)
+        for simulation in tqdm.tqdm(sims):
+            if not simulation.startswith('sim_'): continue
             self.retrieve_simulation(os.path.join(experiment_folder, simulation))
 
     def load_version(self, info_file:str):
