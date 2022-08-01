@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS analysis_results
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     experiment_id INTEGER REQUIRED,
     analysis_type_id INTEGER REQUIRED,
-    analysis_timestep INTEGER,
+    analysis_timepoint float,
     analysis_result TEXT REQUIRED,
     document JSON,
     
@@ -107,4 +107,4 @@ CREATE INDEX IF NOT EXISTS analysis_analysis_type_index
 CREATE INDEX IF NOT EXISTS experiment_analysis_type_index
     ON analysis_results(experiment_id, analysis_type_id);
 CREATE UNIQUE INDEX IF NOT EXISTS analysis_result_index
-    ON analysis_results(experiment_id, analysis_type_id, analysis_timestep);
+    ON analysis_results(experiment_id, analysis_type_id, analysis_timepoint);

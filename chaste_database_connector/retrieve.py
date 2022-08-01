@@ -7,6 +7,10 @@ import os
 def retrieve(experiment_folder:str):
     _ChasteOutputRetriever().retrieve_experiment(experiment_folder)
 
+def store_analysis(experiment_id:int, data:dict):
+    _ChasteOutputRetriever().load_analysis(experiment_id, data)
+            
+
 class _ChasteOutputRetriever:
     def __init__(self, db_file='gastric_gland.db'):
         self.conn = Connection(db_file)
@@ -50,3 +54,9 @@ class _ChasteOutputRetriever:
             if k in _parameters_map:
                 self.conn.load_parameter(experiment_id, _parameters_map[k], value)
 
+    def load_analysis(self, experiment_id:int, data:dict):
+        for name,results in data.items():
+            if type(results)!=dict:
+                results=results.result
+            for t,result in results.items():
+                self.conn.load_analysis_result(experiment_id, name, result, t)

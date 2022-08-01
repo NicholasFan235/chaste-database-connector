@@ -83,6 +83,32 @@ class Connection:
             else:
                 ret[res[0]] = res[1]
         return ret
+    
+    def get_analysis_id(self, analysis_name:str):
+        self.query("""
+            INSERT INTO analysis_types
+                (analysis_name)
+            VALUES
+                (?)
+            ON CONFLICT (analysis_name) DO NOTHING;""",
+            (analysis_name,))
+        result = self.query_fetchone("SELECT id FROM analysis_types WHERE\
+            analysis_types.analysis_name=?", (analysis_name,))
+        assert result is not None
+        return result[0]
+
+    def load_analysis_result(self, experiment_id, analysis_type, analysis_result, timepoint):
+        if type(analysis_type)==str:
+            analysis_type = self.get_analysis_id(analysis_type)
+        assert type(analysis_type)==int
+        self.query("""
+            INSERT INTO analysis_results
+                (experiment_id, analysis_type_id, analysis_result, analysis_timepoint)
+            VALUES
+                (?,?,?,?)
+            ON CONFLICT (experiment_id, analysis_type_id, analysis_timepoint)
+            DO UPDATE SET analysis_result=excluded.analysis_result;
+        """, (experiment_id, analysis_type, analysis_result, timepoint))
 
     def query(self, query:str, params=None):
         try:
