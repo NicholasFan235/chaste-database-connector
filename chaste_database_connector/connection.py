@@ -23,18 +23,21 @@ class Connection:
         return result[0]
 
     def create_experiment(self, version_id:int, experiment_name:str, simulation_id:int,
-            output_folder:str, startpoint_experiment_id=None):
+            output_folder:str, startpoint_experiment_id=None, results_from_time:int=0):
         self.query("""
             INSERT INTO experiments
-                (version_id, experiment_name, simulation_id, output_folder, startpoint_experiment_id)
+                (version_id, experiment_name, simulation_id, output_folder,
+                startpoint_experiment_id, results_from_time)
             VALUES
-                (?,?,?,?,?)
-            ON CONFLICT (version_id, experiment_name, simulation_id) DO NOTHING;""",
-            (version_id, experiment_name, simulation_id, output_folder, startpoint_experiment_id))
+                (?,?,?,?,?,?)
+            ON CONFLICT (version_id, experiment_name, simulation_id, results_from_time) DO NOTHING;""",
+            (version_id, experiment_name, simulation_id, output_folder,
+            startpoint_experiment_id, results_from_time))
         result = self.query_fetchone("SELECT id FROM experiments WHERE\
             experiments.version_id=? AND\
             experiments.experiment_name=? AND\
-            experiments.simulation_id=?", (version_id, experiment_name, simulation_id))
+            experiments.simulation_id=? AND\
+            experiments.results_from_time=?", (version_id, experiment_name, simulation_id, results_from_time))
         assert result is not None
         return result[0]
 
@@ -57,16 +60,18 @@ class Connection:
             ON CONFLICT (experiment_id, parameter_type_id) DO NOTHING;""",
             (experiment_id, self.get_parameter_type_id(parameter_name), parameter_value, notes))
 
-    def get_experiment_id(self, experiment_name:str, simulation_id:int, version_id:int=None):
+    def get_experiment_id(self, experiment_name:str, simulation_id:int, version_id:int=None, results_from_time:int=0):
         if version_id is None:
             result = self.query_fetchall("SELECT id FROM experiments WHERE\
                 experiments.experiment_name=? AND\
-                experiments.simulation_id=?", (experiment_name, simulation_id))
+                experiments.simulation_id=? AND\
+                experiments.results_from_time=?", (experiment_name, simulation_id, results_from_time))
         else:
             result = self.query_fetchone("SELECT id FROM experiments WHERE\
                 experiments.version_id=? AND\
                 experiments.experiment_name=? AND\
-                experiments.simulation_id=?", (version_id, experiment_name, simulation_id))
+                experiments.simulation_id=? AND\
+                experiments.results_from_time=?", (version_id, experiment_name, simulation_id, results_from_time))
         assert result is not None, f'Unable to find experiment {experiment_name}, simulation {simulation_id}'
         assert len(result) == 1, f'Multiple experiments found for {experiment_name} simulation {simulation_id}, try poviding version_id'
         return result[0][0]

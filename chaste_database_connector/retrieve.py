@@ -3,13 +3,14 @@ from ._retrieve_helpers import _get_simulation_info, _extract_parameters, _param
 from .xml_to_dict import xml_to_dict
 from .connection import Connection
 import os
+import re
 
 def retrieve(experiment_folder:str):
     _ChasteOutputRetriever().retrieve_experiment(experiment_folder)
 
 def store_analysis(experiment_id:int, data:dict):
     _ChasteOutputRetriever().load_analysis(experiment_id, data)
-            
+
 
 class _ChasteOutputRetriever:
     def __init__(self, db_file='gastric_gland.db'):
@@ -19,13 +20,18 @@ class _ChasteOutputRetriever:
         assert os.path.exists(simulation_folder), \
             f'Could not find simulation folder "{simulation_folder}"'
         experiment_name, simulation_id = _get_simulation_info(simulation_folder)
-        output_folder = os.path.join(simulation_folder, 'results_from_time_0')
-        version_id = self.load_version(
-            os.path.join(output_folder, 'build.info'))
-        experiment_id = self.load_experiment(
-            version_id, experiment_name, simulation_id, output_folder)
-        self.load_parameters(experiment_id,
-            os.path.join(output_folder, 'results.parameters'))
+        potential_folders = os.listdir(simulation_folder)
+        for folder in potential_folders:
+            m = re.match('^results_from_time_(?P<results_from_time>\d+)')
+            if not m: continue
+            output_folder = os.path.join(simulation_folder, folder)
+            version_id = self.load_version(
+                os.path.join(output_folder, 'build.info'))
+            experiment_id = self.load_experiment(
+                version_id, experiment_name, simulation_id, output_folder,
+                results_from_time=m['results_from_time'])
+            self.load_parameters(experiment_id,
+                os.path.join(output_folder, 'results.parameters'))
 
     def retrieve_experiment(self, experiment_folder:str):
         assert os.path.exists(experiment_folder), \
@@ -42,9 +48,9 @@ class _ChasteOutputRetriever:
             build_info['ChasteBuildInfo']['ProvenanceInfo']['Projects']['Project']['Version'],
             build_info['ChasteBuildInfo']['ProvenanceInfo']['BuildTime'])
 
-    def load_experiment(self, version_id:int, experiment_name:str, simulation_id:int, output_folder:str):
+    def load_experiment(self, version_id:int, experiment_name:str, simulation_id:int, output_folder:str, results_from_time:int=0):
         return self.conn.create_experiment(
-            version_id, experiment_name, simulation_id, output_folder)
+            version_id, experiment_name, simulation_id, output_folder, results_from_time)
 
     def load_parameters(self, experiment_id:int, parameters_file:str):
         assert os.path.exists(parameters_file), f'Cannot find parameters file "{parameters_file}"'

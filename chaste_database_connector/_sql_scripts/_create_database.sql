@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS experiments
     simulation_id INTEGER REQUIRED,
     output_folder TEXT REQUIRED,
     startpoint_experiment_id INTEGER,
+    results_from_time INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIME,
 
     FOREIGN KEY (version_id) REFERENCES versions(id),
     FOREIGN KEY (startpoint_experiment_id) REFERENCES experiments(id)
@@ -26,7 +28,7 @@ CREATE TABLE IF NOT EXISTS experiments
 CREATE INDEX IF NOT EXISTS experiments_version_index
     ON experiments(version_id);
 CREATE UNIQUE INDEX IF NOT EXISTS experiments_index
-    ON experiments(version_id, experiment_name, simulation_id);
+    ON experiments(version_id, experiment_name, simulation_id, results_from_time);
 
 CREATE TABLE IF NOT EXISTS value_types
 (

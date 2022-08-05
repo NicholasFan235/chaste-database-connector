@@ -13,30 +13,32 @@ class View:
             ORDER BY version_id,experiment_name,simulation_id;""",
             self.conn.conn).set_index('id')
 
-    def view_experiment_parameters(self, experiment_name:str, simulation_id:int, version_id:int=None):
-        experiment_id = self.conn.get_experiment_id(experiment_name, simulation_id, version_id)
+    def view_experiment_parameters(self, experiment_name:str, simulation_id:int, version_id:int=None, results_from_time:int=0):
+        experiment_id = self.conn.get_experiment_id(experiment_name, simulation_id, version_id, results_from_time)
         return self.conn.get_parameters_for_experiment(experiment_id)
 
 
-    def view_all_parameters(self, experiment_name:str):
+    def view_all_parameters(self, experiment_name:str, results_from_time:int=0):
         df = pd.read_sql("""
             SELECT experiment_name, simulation_id, parameter_name, parameter_value FROM parameters
                 INNER JOIN experiments ON experiments.id = parameters.experiment_id
                 INNER JOIN parameter_types ON parameter_types.id = parameters.parameter_type_id
             WHERE
-                experiment_name=?
+                experiments.experiment_name=? AND
+                experiments.results_from_time=?
             ORDER BY simulation_id;
-        """, self.conn.conn, params=(experiment_name,))
+        """, self.conn.conn, params=(experiment_name,results_from_time))
         return df.pivot(['experiment_name', 'simulation_id'], 'parameter_name', 'parameter_value')
 
-    def view_all_analysis_results(self, experiment_name:str):
+    def view_all_analysis_results(self, experiment_name:str, results_from_time:int=0):
         df = pd.read_sql("""
             SELECT experiment_name, simulation_id, analysis_name, analysis_timepoint, analysis_result
             FROM analysis_results
                 INNER JOIN experiments ON experiments.id = analysis_results.experiment_id
                 INNER JOIN analysis_types ON analysis_types.id = analysis_results.analysis_type_id
             WHERE
-                experiment_name=?
+                experiments.experiment_name=? AND
+                experiments.results_from_time=?
             ORDER BY simulation_id;
-        """, self.conn.conn, params=(experiment_name,))
+        """, self.conn.conn, params=(experiment_name,results_from_time))
         return df.pivot(['experiment_name', 'simulation_id', 'analysis_timepoint'], 'analysis_name', 'analysis_result')
