@@ -12,6 +12,8 @@ def retrieve(experiment_folder:str):
 def store_analysis(experiment_id:int, data:dict):
     _ChasteOutputRetriever().load_analysis(experiment_id, data)
 
+def retrieve_single(simulation_folder:str):
+    _ChasteOutputRetriever().retrieve_simulation(simulation_folder)
 
 class _ChasteOutputRetriever:
     def __init__(self, db_file='gastric_gland.db'):
@@ -23,8 +25,8 @@ class _ChasteOutputRetriever:
         experiment_name, simulation_id = _get_simulation_info(simulation_folder)
         potential_folders = os.listdir(simulation_folder)
         for folder in potential_folders:
-            m = re.match('^results_from_time_(?P<results_from_time>\d+)')
-            if not m: continue
+            m = re.match('^results_from_time_(?P<results_from_time>\d+)', folder)
+            if m is None: continue
             output_folder = os.path.join(simulation_folder, folder)
             version_id = self.load_version(
                 os.path.join(output_folder, 'build.info'))
@@ -53,7 +55,8 @@ class _ChasteOutputRetriever:
 
     def load_experiment(self, version_id:int, experiment_name:str, simulation_id:int, output_folder:str, results_from_time:int=0):
         return self.conn.create_experiment(
-            version_id, experiment_name, simulation_id, output_folder, results_from_time)
+            version_id, experiment_name, simulation_id, output_folder,
+            results_from_time=results_from_time)
 
     def load_parameters(self, experiment_id:int, parameters_file:str):
         assert os.path.exists(parameters_file), f'Cannot find parameters file "{parameters_file}"'

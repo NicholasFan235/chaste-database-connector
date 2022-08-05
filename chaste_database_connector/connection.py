@@ -51,6 +51,15 @@ class Connection:
         assert result is not None, f'Unable to get parameter_id for "{parameter_name}"'
         return result[0]
 
+    def get_parameter_value(self, experiment_id:int, parameter_name:str):
+        r = self.query_fetchone("""
+            SELECT parameter_value FROM parameters WHERE
+            experiment_id=? AND
+            parameter_type_id=?;""",
+            (experiment_id, self.get_parameter_type_id(parameter_name)))
+        assert r is not None, f'Unable to find parameter {parameter_name} for experiment {experiment_id}'
+        return r[0]
+
     def load_parameter(self, experiment_id:int, parameter_name:str, parameter_value:str, notes:str=None):
         self.query("""
             INSERT INTO parameters
@@ -67,7 +76,7 @@ class Connection:
                 experiments.simulation_id=? AND\
                 experiments.results_from_time=?", (experiment_name, simulation_id, results_from_time))
         else:
-            result = self.query_fetchone("SELECT id FROM experiments WHERE\
+            result = self.query_fetchall("SELECT id FROM experiments WHERE\
                 experiments.version_id=? AND\
                 experiments.experiment_name=? AND\
                 experiments.simulation_id=? AND\
@@ -89,7 +98,7 @@ class Connection:
                 ret[res[0]] = res[1]
         return ret
     
-    def get_analysis_id(self, analysis_name:str):
+    def get_or_create_analysis_id(self, analysis_name:str):
         self.query("""
             INSERT INTO analysis_types
                 (analysis_name)
@@ -102,9 +111,15 @@ class Connection:
         assert result is not None
         return result[0]
 
+    def get_analysis_id(self, analysis_name:str):
+        result = self.query_fetchone("SELECT id FROM analysis_types WHERE\
+            analysis_types.analysis_name=?", (analysis_name,))
+        assert result is not None
+        return result[0]
+
     def load_analysis_result(self, experiment_id, analysis_type, analysis_result, timepoint):
         if type(analysis_type)==str:
-            analysis_type = self.get_analysis_id(analysis_type)
+            analysis_type = self.get_or_create_analysis_id(analysis_type)
         assert type(analysis_type)==int
         self.query("""
             INSERT INTO analysis_results
@@ -114,6 +129,26 @@ class Connection:
             ON CONFLICT (experiment_id, analysis_type_id, analysis_timepoint)
             DO UPDATE SET analysis_result=excluded.analysis_result;
         """, (experiment_id, analysis_type, analysis_result, timepoint))
+
+    def get_analysis_result(self, experiment_id, analysis_type, timepoint=None):
+        if type(analysis_type)==str:
+            analysis_type = self.get_analysis_id(analysis_type)
+        assert type(analysis_type)==int
+        if timepoint is None:
+            result = self.query_fetchall("""
+                SELECT analysis_timepoint, analysis_result FROM analysis_results
+                WHERE experiment_id=? AND analysis_type_id=? ORDER BY analysis_timepoint DESC;
+            """, (experiment_id, analysis_type))
+            assert result is not None, "Unable to find analysis results"
+            return result
+        else:
+            result = self.query_fetchone("""
+                SELECT analysis_result FROM analysis_results
+                WHERE experiment_id=? AND analysis_type=? AND analysis_timepoint=?;
+            """, (experiment_id, analysis_type, timepoint))
+            assert result is not None, "Unable to find analysis result"
+            return result[0]
+
 
     def query(self, query:str, params=None):
         try:
