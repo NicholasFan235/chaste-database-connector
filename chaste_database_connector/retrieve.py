@@ -6,14 +6,14 @@ import os
 import re
 import tqdm
 
-def retrieve(experiment_folder:str):
-    _ChasteOutputRetriever().retrieve_experiment(experiment_folder)
+def retrieve(experiment_folder:str, db_file='gastric_gland.db'):
+    _ChasteOutputRetriever(db_file).retrieve_experiment(experiment_folder)
 
-def store_analysis(experiment_id:int, data:dict):
-    _ChasteOutputRetriever().load_analysis(experiment_id, data)
+def store_analysis(experiment_id:int, data:dict, db_file='gastric_gland.db'):
+    _ChasteOutputRetriever(db_file).load_analysis(experiment_id, data)
 
-def retrieve_single(simulation_folder:str):
-    _ChasteOutputRetriever().retrieve_simulation(simulation_folder)
+def retrieve_single(simulation_folder:str, db_file='gastric_gland.db'):
+    _ChasteOutputRetriever(db_file).retrieve_simulation(simulation_folder)
 
 class _ChasteOutputRetriever:
     def __init__(self, db_file='gastric_gland.db'):

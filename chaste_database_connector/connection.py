@@ -1,11 +1,14 @@
 
 import sqlite3
+import time
+import sys
+import random
 
 
 class Connection:
-    def __init__(self, db_file):
+    def __init__(self, db_file, *args, **kwargs):
         self.db_file = db_file
-        self.conn = sqlite3.connect(db_file)
+        self.conn = sqlite3.connect(db_file, *args, **kwargs)
 
     def get_version_id(self, version_string:str, project_name:str, project_version:str, build_time:str):
         self.query("""
@@ -150,37 +153,50 @@ class Connection:
             return result[0]
 
 
-    def query(self, query:str, params=None):
-        try:
-            cur = self.conn.cursor()
-            cur.execute(query, params)
-        except Exception as e:
-            raise e
-        finally:
-            cur.close()
+    def query(self, query:str, params=None, reps=10):
+        for i in range(reps):
+            try:
+                cur = self.conn.cursor()
+                cur.execute(query, params)
+                return
+            except Exception as e:
+                if i >= 9: raise e
+                sys.stderr.write(f"Encountered exception {e.str()}, retrying {i+1}/{reps}")
+                time.sleep(random.randint(10,20))
+            finally:
+                cur.close()
+            
 
-    def query_fetchone(self, query:str, params=None):
+    def query_fetchone(self, query:str, params=None, reps=10):
         result = None
-        try:
-            cur = self.conn.cursor()
-            cur.execute(query, params)
-            result = cur.fetchone()
-        except Exception as e:
-            raise e
-        finally:
-            cur.close()
+        for i in range(reps):
+            try:
+                cur = self.conn.cursor()
+                cur.execute(query, params)
+                result = cur.fetchone()
+                break
+            except Exception as e:
+                if i >= reps-1: raise e
+                sys.stderr.write(f"Encountered exception {e.str()}, retrying {i+1}/{reps}")
+                time.sleep(random.randint(10,20))
+            finally:
+                cur.close()
         return result
     
-    def query_fetchall(self, query:str, params=None):
+    def query_fetchall(self, query:str, params=None, reps=10):
         result = None
-        try:
-            cur = self.conn.cursor()
-            cur.execute(query, params)
-            result = cur.fetchall()
-        except Exception as e:
-            raise e
-        finally:
-            cur.close()
+        for i in range(reps):
+            try:
+                cur = self.conn.cursor()
+                cur.execute(query, params)
+                result = cur.fetchall()
+                break
+            except Exception as e:
+                if i >= reps-1: raise e
+                sys.stderr.write(f"Encountered exception {e.str()}, retrying {i+1}/{reps}")
+                time.sleep(random.randint(10, 20))
+            finally:
+                cur.close()
         return result
 
 

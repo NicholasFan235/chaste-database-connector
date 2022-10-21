@@ -37,7 +37,13 @@ _parameters_map = {
     'MaxCells': 'max_cells',
     'Dt': 'dt',
     'EndTime': 'end_time',
+    'UpdateCellPopulation': 'update_cell_population',
     'SamplingTimestepMultiple': 'sampling_timestep_multiple',
+    'UpdatingTimestepMultiple': 'updating_timestep_multiple',
+    'OutputDivisionLocations': 'output_division_locations',
+    'OutputCellVelocities': 'output_cell_velocities',
+    'MechanicsCutOffLength': 'mechanics_cutoff_length',
+    'UseVariableRadii': 'use_variable_radii',
     'MitosisRequiredSize': 'mitosis_required_size',
     'FoveolarSizeMultiplier': 'foveolar_size_multiplier',
     'GhostSpringStiffness': 'ghost_spring_stiffness',
@@ -45,6 +51,7 @@ _parameters_map = {
     'AreaBasedDampingConstantParameter': 'area_based_damping_constant_parameter',
     'MeinekeDivisionSeparation': 'meineke_division_separation',
     'DampingConstantNormal': 'damping_constant',
+    'DampingConstantMutant': 'damping_constant_mutant',
     'IsthmusBeginHeight': 'isthmus_begin_height',
     'IsthmusEndHeight': 'isthmus_end_height',
     'BaseHeight': 'base_height',
@@ -69,5 +76,10 @@ _parameters_map = {
     'CutOffLength': 'cutoff_length',
     'UseAdaptiveTimestep': 'use_adaptive_timestep',
     'UseUpdateNodeLocation': 'use_update_node_location',
-    'GhostNodeForcesEnabled': 'ghost_node_forces_enabled'
+    'GhostNodeForcesEnabled': 'ghost_node_forces_enabled',
+    'MinCellCycleDuration': 'min_cell_cycle_duration',
+    'MaxCellCycleDuration': 'max_cell_cycle_duration',
+    'HypoxicConcentration': 'hypoxic_concentration',
+    'NecroticConcentration': 'necrotic_concentration',
+    'QuiescenceVolumeProportion': 'quiescence_volume_proportion'
 }
