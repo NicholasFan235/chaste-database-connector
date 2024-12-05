@@ -1,2 +1,2 @@
 # chaste-database-connector
-Create and manage SQL database of CHASTE simulation outputs
+Create and manage SQL databases to coordinate running CHASTE simulations
