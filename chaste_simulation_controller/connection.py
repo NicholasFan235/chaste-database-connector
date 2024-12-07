@@ -36,6 +36,7 @@ class Connection:
                 self.execute(*args, **kwargs)
             except Exception as e:
                 print(f"{e}, waiting 10s")
+                self.close_connection()
                 time.sleep(10)
 
 
@@ -104,10 +105,12 @@ class Connection:
 
     def try_request_job(self, handler_id)->dict:
         try:
+            timeout = 0
+            
             conn = self.get_connection()
             cur = conn.cursor()
 
-            cur.execute("SELECT id, experiment_name, simulation_id, args FROM jobs WHERE started_at IS NULL LIMIT 1;")
+            cur.execute("SELECT id, experiment_name, simulation_id, args FROM jobs WHERE started_at IS NULL ORDER BY RANDOM() LIMIT 1;")
             r = cur.fetchone()
             if r is None:
                 timeout = 10
