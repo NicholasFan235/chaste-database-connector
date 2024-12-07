@@ -54,4 +54,4 @@ def latin_hypercube_parameter_combinations(n_parameter_sets:int, parameter_optio
     return parameter_combinations
 
 def args_from_params_dict(params:dict)->str:
-    return ' '.join([f'--{name.lstrip('--')}={value}' for name, value in params.items()])
+    return ' '.join([f'--{name.lstrip("--")}={value}' for name, value in params.items()])
